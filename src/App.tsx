@@ -1,25 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { CssBaseline, Box } from '@mui/material';
+import { Navbar } from './components/Navbar';
+import { HomePage } from './pages/Home';
+import { UploadPage } from './pages/Upload';
+import { SubmitPage } from './pages/Submission';
+import { NotFoundPage } from './pages/NotFound';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        {/* Navbar appears on all pages */}
+        <Navbar />
+        
+        {/* Main content area with router */}
+        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/submit" element={<SubmitPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Box>
+
+        {/* Footer can be added here */}
+      </Box>
+    </BrowserRouter>
   );
 }
 
