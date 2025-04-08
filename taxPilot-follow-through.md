@@ -10,7 +10,7 @@ We use two Azure Storage containers to manage and streamline the data flow:
 
 Create an azure storage account, then create two containers as below
 
-![Storage Account Creation](demo-screenshots\storagecontainers.png)
+![Storage Account Creation](./demo-screenshots/storagecontainers.png)
 
 ### 1. `p9-forms` – Training Data Source  
 This storage account contains a curated dataset of P9 forms used to train the Document Intelligence custom model.
@@ -34,11 +34,11 @@ The custom model is trained to extract key fields like:
 
 The model is trained using forms stored in `p9-forms` and deployed with a REST endpoint for inference.
 1. create a Document intelligence resource 
-![Create Doc Intelligence Resource](.\demo-screenshots\docicreate.png)
+![Create Doc Intelligence Resource](./demo-screenshots/docicreate.png)
 
 ---
 2. create a new custom extraction project
-![Create a custom extraction project](.\demo-screenshots\customproject.png)
+![Create a custom extraction project](./demo-screenshots/customproject.png)
 
 ---
 
@@ -104,10 +104,10 @@ To demonstrate downstream analytics, we simulate user data.Due to limited real P
 
 This analysis can organizations track their PAYE submissions to KRA for log audits. Other functionalities include tax based reports such as average Payable income, PAYE, etc.
 
-![Fabric workspace](.\demo-screenshots\fabricworkspace.png)
+![Fabric workspace](./demo-screenshots/fabricworkspace.png)
  ---
 *User summary reports*
-![Fabric workspace](.\demo-screenshots\fabricsummary.png)
+![Fabric workspace](./demo-screenshots/fabricsummary.png)
 
 ---
 
