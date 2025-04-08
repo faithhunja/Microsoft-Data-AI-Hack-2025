@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload P9 - KRA Tax Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --kra-primary: #e30613;
+            --kra-secondary: #ffffff;
+        }
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: 2px solid var(--kra-primary);
+            border-radius: 10px;
+        }
+        .step {
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .step.active {
+            color: var(--kra-primary);
+            font-weight: bold;
+        }
+        .step.completed::after {
+            content: "✓";
+            color: var(--kra-primary);
+            position: absolute;
+            right: -20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: var(--kra-primary);
+            background-color: rgba(227, 6, 19, 0.05);
+        }
+        .upload-area.active {
+            border-color: var(--kra-primary);
+            background-color: rgba(227, 6, 19, 0.1);
+        }
+        .toggle-pin {
+            cursor: pointer;
+            color: var(--kra-primary);
+        }
+        .sample-files {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #e30613;">
+        <div class="container">
+            <a class="navbar-brand" href="/">KRA Tax Automation</a>
+            <div class="navbar-text">
+                <span class="me-2">Guest User</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="stepper d-flex justify-content-between mb-4">
+                    <div class="step active">1. Upload P9</div>
+                    <div class="step">2. Review Data</div>
+                    <div class="step">3. Submit to KRA</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header text-white" style="background-color: #e30613;">
+                        <h4>Upload P9 Form</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="upload-area" class="upload-area mb-4">
+                            <input type="file" id="file-input" accept=".pdf" style="display: none;">
+                            <i class="bi bi-file-earmark-pdf" style="font-size: 3rem; color: var(--kra-primary);"></i>
+                            <h5 class="mt-3">Drag & drop your P9 form here</h5>
+                            <p class="text-muted">Supported formats: PDF</p>
+                            <button class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Browse Files
+                            </button>
+                        </div>
+
+                        <div class="sample-files">
+                            <h6>Need a sample file to test?</h6>
+                            <div class="d-flex gap-2">
+                                <a href="/samples/p9 form.pdf" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-download"></i> Sample P9 (1)
+                                </a>
+                                <a href="/samples/p9-form 1.pdf" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-download"></i> Sample P9 (2)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div class="modal fade" id="processingModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color: #e30613;">
+                    <h5 class="modal-title">Processing P9 Form</h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5>Analyzing with Azure Document Intelligence...</h5>
+                    <p class="text-muted">This may take a few moments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color: #e30613;">
+                    <h5 class="modal-title">KRA iTax Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> DEMO MODE: Any KRA PIN and password (6+ characters) will work
+                    </div>
+                    
+                    <div id="loginFormContainer">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label class="form-label">KRA PIN</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="kraPin">
+                                    <button class="btn btn-outline-secondary toggle-pin" type="button" id="togglePinLock">
+                                        <i class="bi bi-lock-fill" id="pinLockIcon"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted" id="pinSourceMessage">Enter your KRA PIN manually</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" required minlength="6">
+                                <small class="text-muted">Enter any password (min 6 characters)</small>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-link" id="forgotPassword">Forgot Password?</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <span id="loginButtonText">Login</span>
+                                    <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="resetFormContainer" style="display: none;">
+                        <form id="resetForm">
+                            <div class="mb-3">
+                                <label class="form-label">Registered Email</label>
+                                <input type="email" class="form-control" id="resetEmail" required>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" id="backToLogin">Back to Login</button>
+                                <button type="submit" class="btn btn-primary">Send Reset Link</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        const processingModal = new bootstrap.Modal(document.getElementById('processingModal'), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        const kraPinField = document.getElementById('kraPin');
+        const togglePinLock = document.getElementById('togglePinLock');
+        const pinLockIcon = document.getElementById('pinLockIcon');
+        const pinSourceMessage = document.getElementById('pinSourceMessage');
+        
+        let pinFromUpload = false;
+        
+        // Handle drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('active');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('active');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('active');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileUpload();
+            }
+        });
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', handleFileUpload);
+        
+        async function handleFileUpload() {
+            if (fileInput.files.length === 0) return;
+            
+            // Show processing modal
+            processingModal.show();
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Upload failed');
+                }
+                
+                // Auto-populate KRA PIN in modal
+                kraPinField.value = data.kra_pin;
+                pinFromUpload = true;
+                updatePinFieldState();
+                
+                // Show login modal
+                processingModal.hide();
+                loginModal.show();
+                
+            } catch (error) {
+                processingModal.hide();
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        // Toggle PIN field lock/unlock
+        togglePinLock.addEventListener('click', () => {
+            pinFromUpload = !pinFromUpload;
+            updatePinFieldState();
+        });
+        
+        function updatePinFieldState() {
+            if (pinFromUpload) {
+                kraPinField.readOnly = true;
+                pinLockIcon.classList.remove('bi-unlock-fill');
+                pinLockIcon.classList.add('bi-lock-fill');
+                pinSourceMessage.textContent = "Extracted from your P9 form (click lock to edit)";
+                pinSourceMessage.style.color = "green";
+            } else {
+                kraPinField.readOnly = false;
+                pinLockIcon.classList.remove('bi-lock-fill');
+                pinLockIcon.classList.add('bi-unlock-fill');
+                pinSourceMessage.textContent = "Enter your KRA PIN manually";
+                pinSourceMessage.style.color = "";
+            }
+        }
+        
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loginButton = document.querySelector('#loginForm button[type="submit"]');
+            const loginButtonText = document.getElementById('loginButtonText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            // Show loading state
+            loginButton.disabled = true;
+            loginButtonText.classList.add('d-none');
+            loginSpinner.classList.remove('d-none');
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        kra_pin: document.getElementById('kraPin').value.trim().toUpperCase(),
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Login failed');
+                }
+
+                const data = await response.json();
+                
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    throw new Error('Invalid server response');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert(error.message || 'An error occurred during login. Please try again.');
+            } finally {
+                // Reset button state
+                loginButton.disabled = false;
+                loginButtonText.classList.remove('d-none');
+                loginSpinner.classList.add('d-none');
+            }
+        });
+        
+        // Forgot password flow
+        document.getElementById('forgotPassword').addEventListener('click', () => {
+            document.getElementById('loginFormContainer').style.display = 'none';
+            document.getElementById('resetFormContainer').style.display = 'block';
+        });
+        
+        document.getElementById('backToLogin').addEventListener('click', () => {
+            document.getElementById('resetFormContainer').style.display = 'none';
+            document.getElementById('loginFormContainer').style.display = 'block';
+        });
+        
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const response = await fetch('/request-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('resetEmail').value
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('Password reset link has been sent to your email');
+                document.getElementById('resetFormContainer').style.display = 'none';
+                document.getElementById('loginFormContainer').style.display = 'block';
+            } else {
+                alert(data.error || 'Failed to send reset link');
+            }
+        });
+    </script>
+</body>
+</html>

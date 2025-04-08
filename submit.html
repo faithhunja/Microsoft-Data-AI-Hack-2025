@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit - KRA Tax Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --kra-primary: #e30613;
+            --kra-secondary: #ffffff;
+        }
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: 2px solid var(--kra-primary);
+            border-radius: 10px;
+        }
+        .step {
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .step.active {
+            color: var(--kra-primary);
+            font-weight: bold;
+        }
+        .step.completed::after {
+            content: "✓";
+            color: var(--kra-primary);
+            position: absolute;
+            right: -20px;
+        }
+        .status-card {
+            transition: all 0.3s ease;
+        }
+        .fabric-badge {
+            background-color: #0063A0;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #e30613;">
+        <div class="container">
+            <a class="navbar-brand" href="/">KRA Tax Automation</a>
+            <div class="navbar-nav ms-auto">
+                <a href="/logout" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="stepper d-flex justify-content-between mb-4">
+                    <div class="step completed">1. Upload P9</div>
+                    <div class="step completed">2. Review Data</div>
+                    <div class="step active">3. Submit to KRA</div>
+                </div>
+                
+                <div class="card status-card mb-4">
+                    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #e30613;">
+                        <h4>Submission Status</h4>
+                        <span class="badge fabric-badge">
+                            <i class="bi bi-microsoft"></i> Azure Blob Storage (Microsoft Fabric - lakehouse)
+                        </span>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <div id="successStatus" style="display: none;">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3">Submission Successful!</h4>
+                            <p>Your P9 data has been securely processed and stored in Azure Blob Storage (Microsoft Fabric lakehouse).</p>
+                            
+                            <div class="alert alert-info mt-4 text-start">
+                                <h5><i class="bi bi-info-circle"></i> Next Steps</h5>
+                                <ul class="mb-0">
+                                    <li>Data has been submitted to KRA systems</li>
+                                    <li>You'll receive a confirmation email</li>
+                                    <li>Track processing in your iTax dashboard</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="pendingStatus" style="display: none;">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h4 class="mt-3">Processing Submission...</h4>
+                            <p>Your data is being securely transmitted to Azure Blob storage (Microsoft Fabric.)</p>
+                        </div>
+                        
+                        <div id="errorStatus" style="display: none;">
+                            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3">Submission Error</h4>
+                            <p id="errorMessage">Unable to complete submission</p>
+                            <button class="btn btn-primary mt-2" onclick="retrySubmission()">
+                                <i class="bi bi-arrow-clockwise"></i> Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header text-white" style="background-color: #e30613;">
+                        <h4>Submission Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-file-earmark-pdf"></i> Document Information</h5>
+                                <ul class="list-group list-group-flush mb-3">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Submission ID:</span>
+                                        <span id="submissionId">Loading...</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Timestamp:</span>
+                                        <span id="submissionTime">Loading...</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="bi bi-shield-check"></i> Security Verification</h5>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Encryption:</span>
+                                        <span class="text-success"><i class="bi bi-check-circle-fill"></i> Enabled</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Fabric Sync:</span>
+                                        <span id="fabricStatus">Loading...</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="/" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-house"></i> Return Home
+                            </a>
+                            <button id="downloadBtn" class="btn btn-primary" disabled>
+                                <i class="bi bi-download"></i> Download Receipt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simulate submission process (replace with actual API calls)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show pending status initially
+            document.getElementById('pendingStatus').style.display = 'block';
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // For demo purposes, we'll assume success after 2 seconds
+                // In production, you would check actual submission status
+                showSuccessStatus();
+                
+                // Generate random submission ID
+                const submissionId = 'KRA-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                const now = new Date();
+                
+                // Update details
+                document.getElementById('submissionId').textContent = submissionId;
+                document.getElementById('submissionTime').textContent = now.toLocaleString();
+                document.getElementById('fabricStatus').innerHTML = 
+                    '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Synchronized</span>';
+                
+                // Enable download button
+                document.getElementById('downloadBtn').disabled = false;
+            }, 2000);
+        });
+        
+        function showSuccessStatus() {
+            document.getElementById('pendingStatus').style.display = 'none';
+            document.getElementById('errorStatus').style.display = 'none';
+            document.getElementById('successStatus').style.display = 'block';
+        }
+        
+        function showErrorStatus(message) {
+            document.getElementById('pendingStatus').style.display = 'none';
+            document.getElementById('successStatus').style.display = 'none';
+            document.getElementById('errorStatus').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message || 'Submission failed';
+        }
+        
+        function retrySubmission() {
+            document.getElementById('pendingStatus').style.display = 'block';
+            document.getElementById('errorStatus').style.display = 'none';
+            
+            // Simulate retry
+            setTimeout(() => {
+                showSuccessStatus();
+            }, 1500);
+        }
+        
+        // Download receipt handler
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            alert('Receipt download would be implemented in production');
+            // In production, this would call your backend to generate a PDF receipt
+        });
+    </script>
+</body>
+</html>
