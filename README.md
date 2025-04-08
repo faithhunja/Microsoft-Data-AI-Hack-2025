@@ -9,7 +9,6 @@ TaxPilot is an advanced, AI-powered system designed to simplify and automate tax
 ![image](https://github.com/user-attachments/assets/075b0a17-0710-486f-aa05-34c950e1796d) 
 *An intelligent system for automating P9 form processing and tax return submissions*
 
-
 The following capabilities are implemented in TaxPilot:
 
 1. **AI-Powered Data Extraction**: Uses Azure Document Intelligence to extract data from P9 forms
@@ -52,3 +51,5 @@ The following steps are followed while using TaxPilot:
 3. **Excel/Submission Generation**: Outputs a KRA-compliant Excel or submits directly in a simulated environment.
 4. **User Review & Approval**: Notifies user for manual review or corrections if needed.
 5. **Post-Submission Insights**: Stores submission records and generates analytics.
+
+A detailed documentation outlining the architecture, workflow, and analytics pipeline of TaxPilot can be found [here](https://github.com/faithhunja/Microsoft-Data-AI-Hack-2025/blob/main/taxPilot-follow-through.md).
