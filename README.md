@@ -1,6 +1,10 @@
-# Microsoft-Data-AI-Hack-2025
+# TaxPilot
 
 This repository highlights our solution submission for the Microsoft Data + AI Hack, held in Kenya.
+
+## Project Overview
+
+TaxPilot is an advanced, AI-powered system designed to simplify and automate tax return filing in Kenya. This solution harnesses Microsoft Fabric and Azure services to provide a secure, accurate, and user-friendly experience for employed individuals to meet their tax obligations to the Kenya Revenue Authority (KRA) in a prompt and hassle-free manner. By leveraging AI for data extraction, validation, and submission, TaxPilot reduces errors, ensures compliance, and significantly improves the efficiency of tax filing.
 
 # AI-Powered KRA Tax Return Automation Solution
 
