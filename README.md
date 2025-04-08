@@ -6,7 +6,7 @@ This repository highlights our solution submission for the Microsoft Data + AI H
 
 TaxPilot is an advanced, AI-powered system designed to simplify and automate tax return filing in Kenya. This solution harnesses Microsoft Fabric and Azure services to provide a secure, accurate, and user-friendly experience for employed individuals to meet their tax obligations to the Kenya Revenue Authority (KRA) in a prompt and hassle-free manner. By leveraging AI for data extraction, validation, and submission, TaxPilot reduces errors, ensures compliance, and significantly improves the efficiency of tax filing.
 
-![KRA Tax Automation](static/images/kra-logo.png) *An intelligent system for automating P9 form processing and tax return submissions*
+![KRA Tax Automation](static/image.png) *An intelligent system for automating P9 form processing and tax return submissions*
 
 The following capabilities are implemented in TaxPilot:
 
